@@ -1,10 +1,35 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os, json, requests
 from dotenv import load_dotenv
 
 load_dotenv()
 app = FastAPI()
+
+# --- CORS Configuration ---
+# Read allowed origins from environment variable, defaulting to an empty list if not set
+allowed_origins_str = os.getenv("CORS_ALLOWED_ORIGINS", "")
+origins = [origin.strip() for origin in allowed_origins_str.split(',') if origin.strip()]
+
+# If no origins are specified in the environment variable, you might want to add a default
+# or handle it as an error, depending on your security requirements.
+# For now, it will use what's in CORS_ALLOWED_ORIGINS. If empty, no origins will be allowed.
+# Example of adding a default if none are provided:
+# if not origins:
+#     origins = [
+#         "http://localhost:5173", # Default frontend origin for development
+#         "http://127.0.0.1:5173",
+#     ]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # Use the dynamically loaded list of origins
+    allow_credentials=True,      # Allow cookies if needed
+    allow_methods=["*"],         # Allow all methods (GET, POST, etc.)
+    allow_headers=["*"],         # Allow all headers
+)
+# --- End CORS Configuration ---
 
 # Load MCP manifest
 def load_manifest():
